@@ -1,0 +1,33 @@
+TG-Facebook-Uploader/
+├── app/
+│   ├── bot/
+│   │   ├── handlers/
+│   │   │   ├── common.py
+│   │   │   ├── post.py
+│   │   │   └── pages.py
+│   │   ├── client.py
+│   │   └── keyboards.py
+│   ├── database/
+│   │   ├── client.py
+│   │   ├── collections.py
+│   │   └── indexes.py
+│   ├── facebook/
+│   │   ├── client.py
+│   │   └── uploader.py
+│   ├── health/
+│   │   └── server.py
+│   ├── queue/
+│   │   └── worker.py
+│   ├── security/
+│   │   ├── authorization.py
+│   │   └── token_cipher.py
+│   ├── utils/
+│   │   └── files.py
+│   ├── config.py
+│   ├── logging_config.py
+│   └── main.py
+├── .env.example
+├── Dockerfile
+├── requirements.txt
+├── start.sh
+└── README.md
