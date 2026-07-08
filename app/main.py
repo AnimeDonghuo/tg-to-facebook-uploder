@@ -1,5 +1,11 @@
 import asyncio
 import uvloop
+import sys
+import os
+
+# Add the current directory to sys.path to prevent import errors in different environments
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from app.bot.client import bot
 from app.database.client import db
 from app.database.indexes import create_indexes
@@ -10,21 +16,37 @@ from app.health.server import start_health_server
 async def main():
     setup_logging()
     
-    # Init DB
-    await db.connect()
-    await create_indexes()
-    
-    # Start Health Server & Worker
+    # 1. Initialize Database
+    try:
+        await db.connect()
+        await create_indexes()
+    except Exception as e:
+        print(f"CRITICAL: Database connection failed: {e}")
+        return
+
+    # 2. Start Background Tasks
     asyncio.create_task(start_health_server())
     asyncio.create_task(run_worker())
     
-    # Start Bot
+    # 3. Start Telegram Bot
     print("Bot is starting...")
-    await bot.start()
-    
-    # Idle
-    await asyncio.Event().wait()
+    try:
+        await bot.start()
+        print("Bot started. Press Ctrl+C to stop.")
+        # Keep the bot running
+        await asyncio.Event().wait()
+    except (KeyboardInterrupt, SystemExit):
+        print("Bot stopping...")
+    finally:
+        await bot.stop()
+        await db.close()
 
 if __name__ == "__main__":
-    uvloop.install()
-    asyncio.run(main())
+    # Use uvloop for better performance on Linux (Koyeb)
+    if sys.platform != 'win32':
+        uvloop.install()
+    
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        pass
