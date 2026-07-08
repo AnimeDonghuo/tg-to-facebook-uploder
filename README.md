@@ -1,21 +1,25 @@
 # TG-Facebook-Uploader
 
-A professional-grade, private Telegram bot designed to bridge Telegram media and Facebook Page video publishing. Optimized for deployment on Koyeb's ephemeral infrastructure with low RAM and disk footprints.
+A professional-grade, private Telegram bot to bridge Telegram media and Facebook Page video publishing. Optimized for deployment on Koyeb's ephemeral infrastructure.
 
-## 🚀 Features
-- **Large Video Support**: Handles files up to 4GB (Telegram limit) and uploads via Meta's resumable chunked API.
-- **Persistent Queue**: All jobs are stored in MongoDB, ensuring recovery after application restarts.
-- **Batch Uploading**: Collect multiple videos and assign titles/descriptions in one workflow.
-- **Role-Based Access Control**: OWNER, ADMIN, and USER levels.
-- **Secure Token Storage**: Facebook Page tokens are encrypted at rest using AES-256 (Fernet).
-- **Sequential Worker**: Processes uploads one at a time to stay within Koyeb's free-tier limits.
-- **Real-time Progress**: Live Telegram updates for download and upload stages.
+## 🚀 Key Features
+- **MTProto Powered**: Uses Pyrogram for high-performance Telegram interaction.
+- **Official Meta API**: Uses chunked, resumable uploads for large video files.
+- **Persistent Queue**: Jobs are stored in MongoDB to survive application restarts.
+- **Batch Processing**: Advanced batch collection mode with sequential title assignment.
+- **RBAC Security**: Owner, Admin, and User roles with strict permission checks.
+- **Encrypted Secrets**: Facebook Page tokens are AES-256 encrypted at rest.
+- **Resource Optimized**: Low RAM/Disk usage with sequential processing.
 
-## 🛠 Tech Stack
-- Python 3.11, Pyrogram, Motor (MongoDB), Cryptography, aiohttp, Docker.
+## 🛠 Setup & Deployment
 
-## 📋 Quick Start
-1. Clone the repo.
-2. Create a `.env` file based on `.env.example`.
-3. Generate an encryption key: `python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"`
-4. Run `docker-compose up --build`.
+### 1. Requirements
+- Python 3.11+
+- MongoDB (Atlas recommended)
+- Telegram `API_ID`, `API_HASH`, and `BOT_TOKEN`
+- Meta App with `pages_manage_posts` and `page_video_reels_publishing` permissions.
+
+### 2. Encryption Key
+Generate a `TOKEN_ENCRYPTION_KEY`:
+```bash
+python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
