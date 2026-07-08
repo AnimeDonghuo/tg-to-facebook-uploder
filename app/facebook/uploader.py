@@ -2,6 +2,7 @@ import os
 import aiohttp
 import logging
 from app.config import settings
+from app.facebook.errors import classify_fb_error
 
 logger = logging.getLogger(__name__)
 
@@ -11,37 +12,50 @@ class FacebookUploader:
         self.page_id = page_id
         self.url = f"https://graph.facebook.com/{settings.GRAPH_API_VERSION}/{page_id}/videos"
 
-    async def upload(self, path: str, title: str, desc: str, progress_cb=None):
-        size = os.path.getsize(path)
+    async def upload(self, file_path: str, title: str, description: str, progress_cb=None):
+        file_size = os.path.getsize(file_path)
         
-        # 1. Start
         async with aiohttp.ClientSession() as session:
+            # 1. Start Phase
             async with session.post(self.url, params={
-                "upload_phase": "start", "file_size": size, "access_token": self.token
+                "upload_phase": "start",
+                "file_size": file_size,
+                "access_token": self.token
             }) as r:
                 data = await r.json()
-                if "upload_session_id" not in data: raise Exception(f"FB Start Error: {data}")
-                sid = data["upload_session_id"]
+                if r.status != 200: raise classify_fb_error(data)
+                session_id = data["upload_session_id"]
 
-            # 2. Transfer
-            chunk_size = 4 * 1024 * 1024
+            # 2. Transfer Phase (Chunked)
+            chunk_size = 4 * 1024 * 1024 # 4MB
             offset = 0
-            with open(path, "rb") as f:
-                while offset < size:
+            with open(file_path, "rb") as f:
+                while offset < file_size:
                     chunk = f.read(chunk_size)
                     form = aiohttp.FormData()
-                    form.add_field("video_file_chunk", chunk)
+                    form.add_field("video_file_chunk", chunk, filename="blob")
+                    
                     async with session.post(self.url, params={
-                        "upload_phase": "transfer", "upload_session_id": sid,
-                        "start_offset": offset, "access_token": self.token
+                        "upload_phase": "transfer",
+                        "upload_session_id": session_id,
+                        "start_offset": offset,
+                        "access_token": self.token
                     }, data=form) as r:
-                        if r.status != 200: raise Exception(await r.text())
+                        res = await r.json()
+                        if r.status != 200: raise classify_fb_error(res)
+                    
                     offset += len(chunk)
-                    if progress_cb: await progress_cb(offset, size)
+                    if progress_cb:
+                        await progress_cb(offset, file_size)
 
-            # 3. Finish
+            # 3. Finish Phase
             async with session.post(self.url, params={
-                "upload_phase": "finish", "upload_session_id": sid,
-                "title": title, "description": desc, "access_token": self.token
+                "upload_phase": "finish",
+                "upload_session_id": session_id,
+                "title": title,
+                "description": description,
+                "access_token": self.token
             }) as r:
-                return await r.json()
+                final = await r.json()
+                if r.status != 200: raise classify_fb_error(final)
+                return final
