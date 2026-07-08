@@ -4,10 +4,10 @@ import sys
 import os
 import logging
 
-# Ensure the root directory is in path
+# Ensure root is in path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from app.bot.client import bot
+from app.bot.client import bot, register_all_handlers
 from app.database.client import db
 from app.database.indexes import create_indexes
 from app.logging_config import setup_logging
@@ -20,29 +20,27 @@ async def main():
     setup_logging()
     
     try:
-        # 1. Database
         await db.connect()
         await create_indexes()
         
-        # 2. Start Health Server (Koyeb needs this to pass health checks)
-        asyncio.create_task(start_health_server())
+        # 1. Register handlers MANUALLY
+        register_all_handlers()
         
-        # 3. Start Worker
+        # 2. Background tasks
+        asyncio.create_task(start_health_server())
         asyncio.create_task(run_worker())
         
-        # 4. Start Bot
+        # 3. Start Bot
         logger.info("Starting Pyrogram Client...")
         await bot.start()
         
-        # Log the bot's username to verify it's the right one
         me = await bot.get_me()
-        logger.info(f"Bot started as @{me.username}")
+        logger.info(f"Bot started successfully as @{me.username}")
         
-        # Keep alive
         await asyncio.Event().wait()
         
     except Exception as e:
-        logger.error(f"Critical error during startup: {e}", exc_info=True)
+        logger.error(f"Startup failed: {e}", exc_info=True)
     finally:
         await bot.stop()
         await db.close()
