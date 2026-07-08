@@ -8,4 +8,7 @@ def setup_logging():
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         handlers=[logging.StreamHandler(sys.stdout)]
     )
+    # Redact noisy libraries
     logging.getLogger("pyrogram").setLevel(logging.WARNING)
+    logging.getLogger("motor").setLevel(logging.WARNING)
+    logging.getLogger("aiohttp").setLevel(logging.WARNING)
