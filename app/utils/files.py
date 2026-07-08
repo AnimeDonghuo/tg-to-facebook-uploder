@@ -6,10 +6,13 @@ def ensure_temp():
     if not os.path.exists(settings.TEMP_DIR):
         os.makedirs(settings.TEMP_DIR)
 
-def get_free_space_mb():
+def get_free_disk_mb():
     stat = shutil.disk_usage(settings.TEMP_DIR)
     return stat.free // (1024 * 1024)
 
-def clean_file(path: str):
-    if path and os.path.exists(path):
-        os.remove(path)
+def cleanup_temp(file_path: str):
+    if file_path and os.path.exists(file_path):
+        try:
+            os.remove(file_path)
+        except Exception:
+            pass
