@@ -4,15 +4,19 @@ TG-Facebook-Uploader/
 │   │   ├── handlers/
 │   │   │   ├── common.py
 │   │   │   ├── post.py
+│   │   │   ├── batch.py
 │   │   │   └── pages.py
 │   │   ├── client.py
-│   │   └── keyboards.py
+│   │   ├── help_system.py
+│   │   ├── keyboards.py
+│   │   └── progress.py
 │   ├── database/
 │   │   ├── client.py
 │   │   ├── collections.py
 │   │   └── indexes.py
 │   ├── facebook/
 │   │   ├── client.py
+│   │   ├── errors.py
 │   │   └── uploader.py
 │   ├── health/
 │   │   └── server.py
@@ -29,5 +33,4 @@ TG-Facebook-Uploader/
 ├── .env.example
 ├── Dockerfile
 ├── requirements.txt
-├── start.sh
 └── README.md
