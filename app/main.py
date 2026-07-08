@@ -20,31 +20,36 @@ async def main():
     setup_logging()
     
     try:
+        # 1. Connect to Database
         await db.connect()
         await create_indexes()
         
-        # 1. Register handlers MANUALLY
+        # 2. Register Telegram Handlers
         register_all_handlers()
         
-        # 2. Background tasks
+        # 3. Start Background tasks
         asyncio.create_task(start_health_server())
         asyncio.create_task(run_worker())
         
-        # 3. Start Bot
+        # 4. Start Bot
         logger.info("Starting Pyrogram Client...")
         await bot.start()
         
         me = await bot.get_me()
-        logger.info(f"Bot started successfully as @{me.username}")
+        logger.info(f"🚀 Bot is online as @{me.username}")
         
+        # Wait until the process is stopped
         await asyncio.Event().wait()
         
     except Exception as e:
-        logger.error(f"Startup failed: {e}", exc_info=True)
+        logger.error(f"❌ Startup failed: {e}", exc_info=True)
     finally:
-        await bot.stop()
+        # Safe shutdown
+        if bot.is_connected:
+            await bot.stop()
         await db.close()
 
 if __name__ == "__main__":
-    uvloop.install()
+    if sys.platform != 'win32':
+        uvloop.install()
     asyncio.run(main())
